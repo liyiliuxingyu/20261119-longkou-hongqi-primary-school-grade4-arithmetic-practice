@@ -1,0 +1,196 @@
+% !TeX program = xelatex
+% 使用带中文支持的 TeX Live，以 XeLaTeX 连续编译两次。
+% 将下面单独一行的 \showanswersfalse 改为 \showanswerstrue，即生成答案版。
+\newif\ifshowanswers
+\showanswersfalse
+\ifdefined\PrintAnswers\showanswerstrue\fi
+
+\documentclass[UTF8,a4paper,fontset=fandol,zihao=-4]{ctexart}
+\usepackage[margin=15mm]{geometry}
+\usepackage{amsmath,tikz}
+\definecolor{answerred}{HTML}{AE222C}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\newcommand{\questionfont}{\fontsize{14.5}{18}\selectfont}
+\newcommand{\workfont}{\fontsize{13}{17}\selectfont}
+
+% 下列页面坐标以纸张左上角为原点，横向向右、纵向向下，单位为毫米。
+\newcommand{\heading}[3]{%
+  \node[anchor=base west] at (#1,#2) {\heiti\fontsize{16}{20}\selectfont #3};}
+\newcommand{\question}[3]{%
+  \node[anchor=base west,font=\questionfont] at (#1,#2) {$#3$};}
+\newcommand{\result}[1]{\ifshowanswers{\color{answerred}#1}\fi}
+\newcommand{\stepat}[3]{%
+  \ifshowanswers
+    \node[anchor=base west,text=answerred,font=\workfont] at (#1,#2) {$={}#3$};%
+  \fi}
+
+% 一个数字占一格，各行按个位对齐。列号每减一，整行左移一位。
+\ExplSyntaxOn
+\cs_new_protected:Npn \DigitBoxes #1
+  { \tl_map_inline:nn {#1} { \makebox[3.8mm][c]{\ensuremath{##1}} } }
+\ExplSyntaxOff
+\newcommand{\digits}[3]{%
+  \node[anchor=base east] at (#1,#2) {\DigitBoxes{#3}};}
+\tikzset{vertical work/.style={x=3.8mm,y=-6.6mm,
+  color=answerred,every node/.append style={font=\workfont,text=answerred},
+  line width=.55pt,line cap=round,line join=round}}
+
+% 参数依次为横、纵坐标，总列数，被乘数，乘数，各行部分积，积所在行，积。
+\newcommand{\productwork}[8]{%
+  \ifshowanswers
+    \begin{scope}[shift={(#1,#2)},vertical work]
+      \digits{0}{0}{#4}\digits{0}{1}{#5}
+      \node[anchor=base] at ({-#3+.5},1) {$\times$};
+      \draw (-#3,1.32) -- (0,1.32);
+      #6
+      \draw (-#3,{#7-.68}) -- (0,{#7-.68});
+      \digits{0}{#7}{#8}
+    \end{scope}
+  \fi}
+
+% 本卷三道除法均为三位数除以两位数，商为两位数。
+% 商的个位对齐被除数的个位。第一次乘积向左移一位。
+\newcommand{\divisionwork}[9]{%
+  \ifshowanswers
+    \begin{scope}[shift={(#1,#2)},vertical work]
+      \digits{0}{0}{#5}
+      \digits{-3.70}{1}{#3}\digits{0}{1}{#4}
+      \draw (-3.64,1.12) .. controls (-3.40,.91) and (-3.29,.65)
+        .. (-3.22,.35) -- (.05,.35);
+      \digits{-1}{2}{#6}
+      \draw (-3,2.29) -- (-1,2.29);
+      \digits{0}{3}{#7}\digits{0}{4}{#8}
+      \draw (-3,4.29) -- (0,4.29);
+      \digits{0}{5}{#9}
+    \end{scope}
+  \fi}
+
+\begin{document}
+\thispagestyle{empty}
+\noindent\begin{tikzpicture}[remember picture,overlay,
+  inner sep=0pt,outer sep=0pt]
+\begin{scope}[shift={(current page.north west)},x=1mm,y=-1mm]
+
+\node[anchor=base] at (105,23) {\heiti\fontsize{25}{30}\selectfont 四年级计算};
+\ifshowanswers
+  \node[anchor=base east,text=answerred] at (194,22)
+    {\kaishu\fontsize{12}{15}\selectfont 答案版};
+\fi
+
+\heading{15}{41}{一、竖式计算}
+\question{19}{53}{56\times125=\result{7000}}
+\question{82}{53}{630\div18=\result{35}}
+\question{144}{53}{720\div45=\result{16}}
+
+\productwork{48}{64}{4}{56}{125}
+  {\digits{0}{2}{280}\digits{-1}{3}{112}\digits{-2}{4}{56}}{5}{7000}
+\divisionwork{113}{64}{18}{630}{35}{54}{90}{90}{0}
+\divisionwork{175}{64}{45}{720}{16}{45}{270}{270}{0}
+
+\question{19}{109}{89\times416=\result{37024}}
+\question{82}{109}{1370\times29=\result{39730}}
+\question{144}{109}{908\div16=\result{56\cdots\cdots12}}
+
+\productwork{48}{120}{5}{89}{416}
+  {\digits{0}{2}{534}\digits{-1}{3}{89}\digits{-2}{4}{356}}{5}{37024}
+\productwork{113}{120}{5}{1370}{29}
+  {\digits{0}{2}{12330}\digits{-1}{3}{2740}}{4}{39730}
+\divisionwork{175}{120}{16}{908}{56}{80}{108}{96}{12}
+
+\heading{15}{169}{二、脱式计算，能简算的要简算。}
+\question{19}{182}{56\times125}
+\question{82}{182}{99\times46}
+\question{144}{182}{67\times101-67}
+
+\stepat{19}{191}{(7\times8)\times125}
+\stepat{19}{199}{7\times(8\times125)}
+\stepat{19}{207}{7\times1000}
+\stepat{19}{215}{7000}
+
+\stepat{82}{191}{(100-1)\times46}
+\stepat{82}{199}{100\times46-1\times46}
+\stepat{82}{207}{4600-46}
+\stepat{82}{215}{4554}
+
+\stepat{144}{191}{67\times101-67\times1}
+\stepat{144}{199}{67\times(101-1)}
+\stepat{144}{207}{67\times100}
+\stepat{144}{215}{6700}
+
+\question{19}{237}{936\div(13\times6)}
+\question{82}{237}{[315\times(24\div8)]\div9}
+\question{144}{237}{[504\div(3\times7)]\times220}
+
+\stepat{19}{246}{936\div13\div6}
+\stepat{19}{254}{72\div6}
+\stepat{19}{262}{12}
+
+\stepat{82}{246}{[315\times3]\div9}
+\stepat{82}{254}{315\div9\times3}
+\stepat{82}{262}{35\times3}
+\stepat{82}{270}{105}
+
+\stepat{144}{246}{504\div3\div7\times220}
+\stepat{144}{254}{168\div7\times220}
+\stepat{144}{262}{24\times220}
+\stepat{144}{270}{5280}
+
+\end{scope}
+\end{tikzpicture}
+\ifshowanswers
+\clearpage
+\begingroup
+\kaishu\fontsize{12.5}{19}\selectfont
+\setlength{\parindent}{0pt}
+\setlength{\tabcolsep}{4pt}
+\begin{center}
+  {\heiti\fontsize{23}{29}\selectfont 四年级计算评分细则}\par
+  \vspace{2mm}
+  满分 100 分\quad 竖式计算 40 分\quad 脱式计算 60 分
+\end{center}
+
+\vspace{3mm}
+{\heiti\zihao{4} 一、竖式计算\quad 40 分}\par
+\vspace{2mm}
+{\renewcommand{\arraystretch}{1.35}
+\begin{tabular*}{\linewidth}{@{}l@{\extracolsep{\fill}}clclc@{}}
+\hline
+题目 & 分值 & 题目 & 分值 & 题目 & 分值 \\
+\hline
+$56\times125$ & 7 分 & $630\div18$ & 6 分 & $720\div45$ & 6 分 \\
+$89\times416$ & 7 分 & $1370\times29$ & 7 分 & $908\div16$ & 7 分 \\
+\hline
+\end{tabular*}}\par
+
+\vspace{4mm}
+{\heiti 乘法，每题 7 分。}列式并对齐数位 1 分。各行部分积的数字 2 分、位置 2 分（两项分别评，全对得 2 分，错一行得 1 分）。按所列部分积正确求和 1 分。横式得数 1 分。\par
+\vspace{2mm}
+{\heiti 整除，每题 6 分。}列竖式 1 分。两轮试商各 2 分（商的数字和位置正确 1 分，乘、减正确 1 分）。横式写出正确的商 1 分。\par
+\vspace{2mm}
+{\heiti 有余数除法，7 分。}按上述除法标准计 6 分，横式正确写出余数 12 再得 1 分。\par
+
+\vspace{6mm}
+{\heiti\zihao{4} 二、脱式计算\quad 60 分}\par
+\vspace{2mm}
+每题 10 分。下表按原题顺序列出评分点，其他正确的简便算法按对应步骤给分。\par
+\vspace{2mm}
+{\fontsize{11.5}{17}\selectfont\renewcommand{\arraystretch}{1.50}
+\begin{tabular*}{\linewidth}{@{}l@{\extracolsep{\fill}}llr@{}}
+\hline
+题目 & 简便变形（4 分） & 中间计算（4 分） & 得数（2 分）\\
+\hline
+$56\times125$ & $7\times(8\times125)$ & $7\times1000$ & $7000$ \\
+$99\times46$ & $100\times46-46$ & $4600-46$ & $4554$ \\
+$67\times101-67$ & $67\times(101-1)$ & $67\times100$ & $6700$ \\
+$936\div(13\times6)$ & $936\div13\div6$ & $72\div6$ & $12$ \\
+$[315\times(24\div8)]\div9$ & $315\div9\times3$ & $35\times3$ & $105$ \\
+$[504\div(3\times7)]\times220$ & $504\div3\div7\times220$ & $24\times220$ & $5280$ \\
+\hline
+\end{tabular*}}\par
+\vspace{4mm}
+简便变形中，选择恰当的方法得 2 分，正确写出等值算式再得 2 分。中间计算中，运算顺序正确得 2 分，算对中间数值再得 2 分。只写正确得数得 2 分。\par
+\endgroup
+\fi
+
+\end{document}
